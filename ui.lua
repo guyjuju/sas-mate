@@ -685,7 +685,7 @@ function library:Create(title, gamename, LogoURL)
 						if Btn.Text == NewText then
 							return
 						end
-						Button.Text = NewText
+						Btn.Text = NewText
 					end
 				}
 
@@ -904,8 +904,9 @@ function holder:Slider(name, default, min, max, precise, callback)
 
 				local funcs = {}
 
-				funcs.Set = function(self,value)
-					local percent = (mouse.X - Bar.AbsolutePosition.X) / Bar.AbsoluteSize.X
+				-- inputX: screen X of the finger/mouse (falls back to mouse.X for mouse-only use)
+				funcs.Set = function(self, value, inputX)
+					local percent = ((inputX or mouse.X) - Bar.AbsolutePosition.X) / Bar.AbsoluteSize.X
 					if value then
 						percent = (value - min) / (max - min)
 					end
@@ -923,27 +924,39 @@ function holder:Slider(name, default, min, max, precise, callback)
 
 				funcs:Set(tonumber(default))
 
-				local dragging, boxFocused, allowed = false, false, {
+				local UIS = game:GetService("UserInputService")
+				local dragging, dragInput = false, nil
+				local boxFocused, allowed = false, {
 					[""] = true,
 					["-"] = true
 				}
 
+				local function stopDrag()
+					dragging = false
+					dragInput = nil
+					Holder.ScrollingEnabled = true -- let the tab scroll again
+				end
+
 				Slider.InputBegan:Connect(function(input)
-					if input.UserInputType == Enum.UserInputType.MouseButton1 then
-						funcs:Set()
+					if input.UserInputType == Enum.UserInputType.MouseButton1
+						or input.UserInputType == Enum.UserInputType.Touch then
 						dragging = true
+						dragInput = input
+						Holder.ScrollingEnabled = false -- stop the tab scrolling while sliding
+						funcs:Set(nil, input.Position.X)
 					end
 				end)
 
-				game:GetService("UserInputService").InputEnded:Connect(function(input)
-					if dragging and input.UserInputType == Enum.UserInputType.MouseButton1 then
-						dragging = false
+				UIS.InputEnded:Connect(function(input)
+					if dragging and (input == dragInput or input.UserInputType == Enum.UserInputType.MouseButton1) then
+						stopDrag()
 					end
 				end)
 
-				game:GetService("UserInputService").InputChanged:Connect(function(input)
-					if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-						funcs:Set()
+				UIS.InputChanged:Connect(function(input)
+					if not dragging then return end
+					if input == dragInput or input.UserInputType == Enum.UserInputType.MouseMovement then
+						funcs:Set(nil, input.Position.X)
 					end
 				end)
 
