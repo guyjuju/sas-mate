@@ -57,10 +57,34 @@ function drag(frame, hold) -- Skidded from Kiriot or Wally ~V3rmillion~
 	end)
 end
 
-function library:Create(title, gamename)
+function library:Create(title, gamename, LogoURL)
     if game:WaitForChild"CoreGui":FindFirstChild"Nightfall" then
         game.CoreGui:FindFirstChild"Nightfall":Destroy()
     end
+
+	getgenv().UseCustomLogo = LogoURL and true or false
+
+	if LogoURL then assert(type(LogoURL) == "string", "LogoURL must be a string") end
+
+	local Image = LogoURL and game:HttpGet(LogoURL) or nil
+	if Image then
+
+		if not isfolder("SasMate") then makefolder("SasMate") end
+		if not isfolder("SasMate/assets") then makefolder("SasMate/assets") end
+
+		if isfile("SasMate/assets/Logo.png") then
+			local OldImage = readfile("SasMate/assets/Logo.png")
+
+			if OldImage ~= Image then
+				writefile("SasMate/assets/Logo.png", Image)
+				print("Cached Logo")
+			end
+		else
+			writefile("SasMate/assets/Logo.png", Image)
+			print("Cached Logo")
+		end
+
+	end
 
 	local themes = {
 		main = "35, 35, 35",
@@ -96,7 +120,8 @@ function library:Create(title, gamename)
 	local TabHolderLL = Instance.new("UIListLayout")
 	local TabHolderP = Instance.new("UIPadding")
 
-	Nightfall.Name = "Nightfall"
+
+	Nightfall.Name = "SasMate"
 	Nightfall.Parent = game:WaitForChild"CoreGui"
 	Nightfall.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
@@ -106,6 +131,21 @@ function library:Create(title, gamename)
 	Main.BorderSizePixel = 0
 	Main.Position = UDim2.new(0.11157456, 0, 0.287621379, 0)
 	Main.Size = UDim2.new(0, 564, 0, 350)
+
+	if LogoURL then
+
+		local BackgroundLogo = Instance.new("ImageLabel")
+
+		BackgroundLogo.Name = "Logo"
+		BackgroundLogo.Parent = Main
+		BackgroundLogo.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+		BackgroundLogo.BackgroundTransparency = 1.000
+		BackgroundLogo.Position = UDim2.new(0.5, 0, 0, 52)
+		BackgroundLogo.AnchorPoint = Vector2.new(0.5, 0)
+		BackgroundLogo.Size = UDim2.new(1, 0, 1, -52)
+		BackgroundLogo.Image = getcustomasset("SasMate/assets/Logo.png") or ""
+
+	end
 
 	MainC.Name = "MainC"
 	MainC.Parent = Main
@@ -159,6 +199,7 @@ function library:Create(title, gamename)
 	Side.Name = "Side"
 	Side.Parent = Main
 	Side.BackgroundColor3 = themes.secondary
+	Side.BackgroundTransparency = getgenv().UseCustomLogo and 1 or 0
 	Side.BorderSizePixel = 0
 	Side.Position = UDim2.new(0, 0, 0.128571436, 0)
 	Side.Size = UDim2.new(0, 123, 0, 304)
@@ -170,6 +211,7 @@ function library:Create(title, gamename)
 	TabHolder.Parent = Side
 	TabHolder.Active = true
 	TabHolder.BackgroundColor3 = themes.secondary
+	TabHolder.BackgroundTransparency = LogoURL and 0.45 or 0
 	TabHolder.BorderSizePixel = 0
 	TabHolder.Position = UDim2.new(0, 0, 0.0427631587, 0)
 	TabHolder.Size = UDim2.new(0, 123, 0, 282)
@@ -182,6 +224,7 @@ function library:Create(title, gamename)
 	SideBar.BorderSizePixel = 0
 	SideBar.Position = UDim2.new(0.21808511, 0, 0.128571436, 0)
 	SideBar.Size = UDim2.new(0, 6, 0, 304)
+	SideBar.BackgroundTransparency = getgenv().UseCustomLogo and 1 or 0
 
 	TabHolderLL.Name = "TabHolderLL"
 	TabHolderLL.Parent = TabHolder
@@ -570,6 +613,7 @@ function library:Create(title, gamename)
 			Section.Name = "Section "..title
 			Section.Parent = Holder
 			Section.BackgroundColor3 = themes.secondary
+			Section.BackgroundTransparency = getgenv().UseCustomLogo and 0.45 or 0
 			Section.BorderSizePixel = 0
 			Section.Position = UDim2.new(0.016091954, 0, 0, 0)
 			Section.Size = UDim2.new(0, 421, 0, 44)
